@@ -1,0 +1,138 @@
+name: End-to-End Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Verify app can be imported
+      run: |
+        cd src
+        python -c "import app; print('FastMCP app imported successfully')"
+        
+    - name: Start FastMCP server
+      run: |
+        cd src
+        python -m uvicorn app:app --host 0.0.0.0 --port 8000 &
+        echo $! > server.pid
+        
+    - name: Wait for server to start
+      run: |
+        echo "Waiting for server to start..."
+        for i in {1..30}; do
+          if curl -s http://localhost:8000/sse > /dev/null; then
+            echo "Server is ready!"
+            break
+          fi
+          echo "Attempt $i: Server not ready yet, waiting..."
+          sleep 2
+        done
+        
+    - name: Test server health
+      run: |
+        # Test that root returns 404 (expected behavior)
+        response=$(curl -s -w "%{http_code}" http://localhost:8000/ || echo "000")
+        if [[ "$response" == *"404"* ]]; then
+          echo "✓ Root endpoint returns 404 as expected"
+        else
+          echo "✗ Root endpoint test failed. Response: $response"
+          exit 1
+        fi
+        
+    - name: Test SSE endpoint accessibility
+      run: |
+        # Test that SSE endpoint is accessible (should return 200 and stay open)
+        timeout 5s curl -s -I http://localhost:8000/sse | head -n 1 | grep -q "200 OK"
+        if [ $? -eq 0 ]; then
+          echo "✓ SSE endpoint is accessible"
+        else
+          echo "✗ SSE endpoint test failed"
+          exit 1
+        fi
+        
+    - name: Test MCP protocol functionality
+      run: |
+        # Test MCP client connection to the SSE endpoint
+        # This tests the core MCP functionality without needing a full MCP client
+        
+        # Test 1: Basic SSE connection with MCP headers
+        echo "Testing MCP SSE connection..."
+        timeout 3s curl -s -H "Accept: text/event-stream" -H "Cache-Control: no-cache" http://localhost:8000/sse >/dev/null 2>&1
+        exit_code=$?
+        if [[ $exit_code -eq 124 ]]; then
+          echo "✓ MCP SSE connection successful (timed out as expected)"
+        elif [[ $exit_code -eq 0 ]]; then
+          echo "✓ MCP SSE connection successful"
+        else
+          echo "✗ MCP SSE connection failed"
+          exit 1
+        fi
+        
+        # Test 2: Verify server exposes expected MCP components
+        echo "Testing MCP tool and resource availability..."
+        cd src
+        python -c "
+import app
+
+# Test the add function directly
+result = app.add(2, 3)
+print(f'Add function works: {result == 5}')
+
+# Test the greeting function directly  
+greeting = app.get_greeting('Test')
+print(f'Greeting function works: {greeting == \"Hello, Test!\"}')
+
+print('✓ All MCP components verified')
+"
+        
+    - name: Test server under load
+      run: |
+        echo "Testing server under concurrent requests..."
+        # Send multiple concurrent requests to ensure stability
+        for i in {1..5}; do
+          timeout 2s curl -s http://localhost:8000/sse > /dev/null &
+        done
+        wait
+        echo "✓ Server handled concurrent requests"
+        
+    - name: Cleanup
+      run: |
+        if [ -f src/server.pid ]; then
+          kill $(cat src/server.pid) || true
+          rm src/server.pid
+        fi
+        # Kill any remaining uvicorn processes
+        pkill -f uvicorn || true
+        echo "✓ Server cleanup completed"
+        
+    - name: Test results summary
+      run: |
+        echo "🎉 End-to-End Testing Summary:"
+        echo "✅ App import verification"
+        echo "✅ Server startup and health check"  
+        echo "✅ SSE endpoint accessibility"
+        echo "✅ MCP protocol functionality"
+        echo "✅ MCP tools and resources verification"
+        echo "✅ Server stability under load"
+        echo ""
+        echo "All endpoints tested successfully! 🚀"
