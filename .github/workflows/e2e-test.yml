@@ -92,7 +92,22 @@ jobs:
         echo "Testing MCP tool and resource availability..."
         cd src
         python -c 'import app; result = app.add(2, 3); print("Add function works:", result == 5)'
-        python -c 'import app; greeting = app.get_greeting("Test"); print("Greeting function works:", greeting == "Hello, Test!")'
+        # Test MCP tool 'add' via HTTP POST
+        add_result=$(curl -s -X POST -H "Content-Type: application/json" -d '{"a":2,"b":3}' http://localhost:8000/tools/add)
+        if echo "$add_result" | grep -q '"result"[[:space:]]*:[[:space:]]*5'; then
+          echo "✓ Add tool works via MCP protocol"
+        else
+          echo "✗ Add tool failed via MCP protocol. Response: $add_result"
+          exit 1
+        fi
+        # Test MCP tool 'get_greeting' via HTTP POST
+        greeting_result=$(curl -s -X POST -H "Content-Type: application/json" -d '{"name":"Test"}' http://localhost:8000/tools/get_greeting)
+        if echo "$greeting_result" | grep -q '"result"[[:space:]]*:[[:space:]]*"Hello, Test!"'; then
+          echo "✓ Greeting tool works via MCP protocol"
+        else
+          echo "✗ Greeting tool failed via MCP protocol. Response: $greeting_result"
+          exit 1
+        fi
         echo "✓ All MCP components verified"
         
     - name: Test server under load
