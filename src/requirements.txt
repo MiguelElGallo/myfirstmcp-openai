@@ -50,7 +50,7 @@ pydantic-settings==2.8.1
     # via mcp
 pygments==2.19.1
     # via rich
-python-dotenv==1.0.1
+python-dotenv==1.1.1
     # via
     #   mcp
     #   pydantic-settings
