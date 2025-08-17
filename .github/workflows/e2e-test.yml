@@ -78,14 +78,17 @@ jobs:
         
         # Test 1: Basic SSE connection with MCP headers
         echo "Testing MCP SSE connection..."
+        # Use set +e to allow timeout command to return non-zero exit codes
+        set +e
         timeout 3s curl -s -H "Accept: text/event-stream" -H "Cache-Control: no-cache" http://localhost:8000/sse >/dev/null 2>&1
         exit_code=$?
+        set -e
         if [[ $exit_code -eq 124 ]]; then
           echo "✓ MCP SSE connection successful (timed out as expected)"
         elif [[ $exit_code -eq 0 ]]; then
           echo "✓ MCP SSE connection successful"
         else
-          echo "✗ MCP SSE connection failed"
+          echo "✗ MCP SSE connection failed (exit code: $exit_code)"
           exit 1
         fi
         
