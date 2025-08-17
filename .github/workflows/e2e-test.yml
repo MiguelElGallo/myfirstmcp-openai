@@ -91,19 +91,9 @@ jobs:
         # Test 2: Verify server exposes expected MCP components
         echo "Testing MCP tool and resource availability..."
         cd src
-        python -c "
-import app
-
-# Test the add function directly
-result = app.add(2, 3)
-print(f'Add function works: {result == 5}')
-
-# Test the greeting function directly  
-greeting = app.get_greeting('Test')
-print(f'Greeting function works: {greeting == \"Hello, Test!\"}')
-
-print('✓ All MCP components verified')
-"
+        python -c 'import app; result = app.add(2, 3); print("Add function works:", result == 5)'
+        python -c 'import app; greeting = app.get_greeting("Test"); print("Greeting function works:", greeting == "Hello, Test!")'
+        echo "✓ All MCP components verified"
         
     - name: Test server under load
       run: |
