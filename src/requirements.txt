@@ -38,7 +38,7 @@ mcp==1.5.0
     # via -r requirements.in
 mdurl==0.1.2
     # via markdown-it-py
-packaging==24.2
+packaging==25.0
     # via gunicorn
 pydantic==2.11.7
     # via
