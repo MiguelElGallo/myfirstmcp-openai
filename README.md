@@ -34,15 +34,15 @@ This command will prompt you for the following information:
 
   1. Login to your Azure account.
 
-  ```bash
-  azd auth login
-  ```
+    ```bash
+    azd auth login
+    ```
 
   2. Run the following command to build a deployable copy of your application, provision the template's infrastructure to Azure and also deploy the application code to those newly provisioned resources.
 
-  ```bash
-  azd up
-  ```
+    ```bash
+    azd up
+    ```
 
 This command will prompt you for the following information:
 
