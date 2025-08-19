@@ -32,24 +32,26 @@ This command will prompt you for the following information:
 
 - `Environment Name`: This will be used as a prefix for the resource group that will be created to hold all Azure resources. This name should be unique within your Azure subscription.
 
-1. Login to your Azure account.
-```bash
-azd auth login
-```
+  1. Login to your Azure account.
 
-1. Run the following command to build a deployable copy of your application, provision the template's infrastructure to Azure and also deploy the applciation code to those newly provisioned resources.
+  ```bash
+  azd auth login
+  ```
 
-```bash
-azd up
-```
+  2. Run the following command to build a deployable copy of your application, provision the template's infrastructure to Azure and also deploy the application code to those newly provisioned resources.
+
+  ```bash
+  azd up
+  ```
 
 This command will prompt you for the following information:
+
 - `Azure Location`: The Azure location where your resources will be deployed.
 - `Azure Subscription`: The Azure Subscription where your resources will be deployed.
 
 > NOTE: This may take a while to complete as it executes three commands: `azd package` (builds a deployable copy of your application), `azd provision` (provisions Azure resources), and `azd deploy` (deploys application code). You will see a progress indicator as it packages, provisions and deploys your application.
 
-4. Then make changes to app.py and run `azd deploy` again to update your changes.
+3. Then make changes to app.py and run `azd deploy` again to update your changes.
 
 ## Notes
 
@@ -59,4 +61,6 @@ See the [pricing calculator](https://azure.microsoft.com/en-au/pricing/calculato
 
 ## Client
 
-Using any MCP client and connect to: https://yourapp.azurewebsites.net/sse
+Using any MCP client and connect to: <https://yourapp.azurewebsites.net/sse>
+
+The server also includes the MCP inspector, which is a web interface to inspect the MCP messages. You can access it at: (<http://yourapp.azurewebsites.net/#resources>)
