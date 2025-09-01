@@ -84,7 +84,7 @@ starlette==0.47.2
     # via mcp
 typer==0.16.1
     # via mcp
-typing-extensions==4.14.1
+typing-extensions==4.15.0
     # via
     #   anyio
     #   pydantic
